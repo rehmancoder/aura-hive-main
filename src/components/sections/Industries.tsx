@@ -2,13 +2,23 @@
 
 import Image from "next/image";
 import { useRef } from "react";
-import { industries } from "@/lib/site";
+import { industries as marketingIndustries } from "@/lib/site";
 import { gsap, useGsap } from "@/lib/motion";
 
 const STACK_QUERY = "(min-width: 1024px) and (min-height: 700px)";
 
 /** Industry cards stack on top of each other as you scroll; each one recedes as the next slides over it. */
-export function Industries() {
+type Industry = { name: string; image: string; alt: string; body: string; points: readonly string[] };
+
+export function Industries({
+  items: industries = marketingIndustries,
+  title = "Built for fast-growing industries",
+  intro = "Each industry gets its own playbook, audiences and creative style, refined across every account we run.",
+}: {
+  items?: readonly Industry[];
+  title?: string;
+  intro?: string;
+}) {
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -65,11 +75,9 @@ export function Industries() {
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <h2 id="industries-title" className="display max-w-3xl text-[clamp(2.75rem,7vw,6.5rem)] text-wax">
-            Built for fast-growing industries
+            {title}
           </h2>
-          <p className="max-w-sm text-base leading-relaxed text-wax/70 sm:text-lg">
-            Each industry gets its own playbook, audiences and creative style, refined across every account we run.
-          </p>
+          <p className="max-w-sm text-base leading-relaxed text-wax/70 sm:text-lg">{intro}</p>
         </div>
 
         <ul className="mt-12 space-y-6 [perspective:1600px] md:mt-20 [@media(min-width:1024px)_and_(min-height:700px)]:space-y-0">

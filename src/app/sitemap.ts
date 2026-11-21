@@ -1,39 +1,26 @@
 import type { MetadataRoute } from "next";
 import { siteUrl } from "@/lib/env";
-import { servicePath, services } from "@/lib/site";
+import { divisions } from "@/lib/divisions";
 
-// Add new pages here so Google can find them.
+const updated = new Date("2026-11-21");
+
+// Every page on both sides of the site, so Google can find them.
 export default function sitemap(): MetadataRoute.Sitemap {
+  const page = (path: string, priority: number, changeFrequency: "monthly" | "yearly" = "monthly") => ({
+    url: `${siteUrl}${path}`,
+    lastModified: updated,
+    changeFrequency,
+    priority,
+  });
+
   return [
-    {
-      url: siteUrl,
-      lastModified: new Date("2026-10-27"),
-      changeFrequency: "monthly",
-      priority: 1,
-    },
-    {
-      url: `${siteUrl}/about`,
-      lastModified: new Date("2026-10-27"),
-      changeFrequency: "yearly",
-      priority: 0.8,
-    },
-    {
-      url: `${siteUrl}/services`,
-      lastModified: new Date("2026-10-27"),
-      changeFrequency: "monthly",
-      priority: 0.9,
-    },
-    {
-      url: `${siteUrl}/contact`,
-      lastModified: new Date("2026-10-27"),
-      changeFrequency: "yearly",
-      priority: 0.7,
-    },
-    ...services.map((s) => ({
-      url: `${siteUrl}${servicePath(s.slug)}`,
-      lastModified: new Date("2026-10-27"),
-      changeFrequency: "monthly" as const,
-      priority: 0.8,
-    })),
+    page("", 1),
+    ...Object.values(divisions).flatMap((d) => [
+      page(d.base, 0.95),
+      page(d.servicesPath, 0.9),
+      page(d.aboutPath, 0.8, "yearly"),
+      page(d.contactPath, 0.7, "yearly"),
+      ...d.services.map((s) => page(d.servicePath(s.slug), 0.8)),
+    ]),
   ];
 }

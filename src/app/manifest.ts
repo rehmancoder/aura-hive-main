@@ -3,9 +3,9 @@ import { site } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: site.name,
+    name: site.legalName,
     short_name: site.name,
-    description: site.description,
+    description: site.companyDescription,
     start_url: "/",
     display: "standalone",
     background_color: "#000000",

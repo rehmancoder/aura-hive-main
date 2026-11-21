@@ -5,7 +5,19 @@ import { useRef } from "react";
 import { gsap, useGsap } from "@/lib/motion";
 
 /** A framed image that opens to full width as it scrolls into view, with its headline sliding across. */
-export function Showcase() {
+type Props = {
+  lines?: [string, string];
+  body?: string;
+  image?: string;
+  alt?: string;
+};
+
+export function Showcase({
+  lines = ["Many agents.", "One hive."],
+  body = "Your ads, social pages, videos and CRM share one view of your customers. That shared memory is what makes each campaign smarter than the last.",
+  image = "/images/hive.webp",
+  alt = "A field of gold and black hexagons rising like a honeycomb",
+}: Props) {
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -37,8 +49,8 @@ export function Showcase() {
       <div data-frame className="relative h-[90svh] overflow-hidden md:h-[110vh]">
         <div data-photo className="absolute inset-0">
           <Image
-            src="/images/hive.webp"
-            alt="A field of gold and black hexagons rising like a honeycomb"
+            src={image}
+            alt={alt}
             fill
             sizes="100vw"
             className="object-cover"
@@ -47,12 +59,11 @@ export function Showcase() {
         <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-ink/70 via-ink/10 to-ink/80" />
         <div className="absolute inset-0 flex flex-col justify-center overflow-hidden px-5 sm:px-8">
           <h2 id="showcase-title" data-allow-overflow className="display text-[clamp(2.6rem,12vw,12rem)] leading-[0.85] text-wax">
-            <span data-line data-allow-overflow className="block whitespace-nowrap">Many agents.</span>
-            <span data-line data-allow-overflow className="block whitespace-nowrap text-right text-honey">One hive.</span>
+            <span data-line data-allow-overflow className="block whitespace-nowrap">{lines[0]}</span>
+            <span data-line data-allow-overflow className="block whitespace-nowrap text-right text-honey">{lines[1]}</span>
           </h2>
           <p className="mx-auto mt-8 max-w-xl rounded-3xl bg-ink/65 px-5 py-4 text-center text-base leading-relaxed text-wax/90 backdrop-blur-md sm:mt-10 sm:px-6 sm:py-5 sm:text-lg md:text-xl">
-            Your ads, social pages, videos and CRM share one view of your customers. That shared memory is what makes
-            each campaign smarter than the last.
+            {body}
           </p>
         </div>
       </div>

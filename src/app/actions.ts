@@ -2,6 +2,7 @@
 
 import { isProduction } from "@/lib/env";
 import { site } from "@/lib/site";
+import { divisions, type DivisionId } from "@/lib/divisions";
 
 export type ContactState = {
   status: "idle" | "success" | "error";
@@ -34,6 +35,9 @@ export async function sendEnquiry(_prev: ContactState, formData: FormData): Prom
   const started = Number(get("started"));
   if (started && Date.now() - started < 2500) return thanks;
 
+  const division: DivisionId = get("division") === "consultancy" ? "consultancy" : "marketing";
+  const side = divisions[division].name;
+
   const values = {
     name: get("name").slice(0, 120),
     email: get("email").slice(0, 160),
@@ -41,19 +45,25 @@ export async function sendEnquiry(_prev: ContactState, formData: FormData): Prom
     company: get("company").slice(0, 120),
     service: get("service").slice(0, 120),
     budget: get("budget").slice(0, 60),
+    sector: get("sector").slice(0, 80),
+    engagement: get("engagement").slice(0, 80),
     message: get("message").slice(0, 4000),
   };
 
   const fieldErrors: ContactState["fieldErrors"] = {};
   if (values.name.length < 2) fieldErrors.name = "Enter your name.";
   if (!EMAIL_RE.test(values.email)) fieldErrors.email = "Enter an email address like name@company.com.";
-  if (values.message.length < 10) fieldErrors.message = "Tell us a little about your goals (10 characters or more).";
+  if (values.message.length < 10)
+    fieldErrors.message =
+      division === "consultancy"
+        ? "Tell us a little about your buildings (10 characters or more)."
+        : "Tell us a little about your goals (10 characters or more).";
 
   if (Object.keys(fieldErrors).length) {
     return { status: "error", message: "Check the highlighted fields and send again.", fieldErrors, values };
   }
 
-  const payload = { ...values, source: "Website contact form", receivedAt: new Date().toISOString() };
+  const payload = { ...values, division: side, source: `Website contact form (${side})`, receivedAt: new Date().toISOString() };
   const resendKey = process.env.RESEND_API_KEY;
   const toEmail = process.env.CONTACT_TO_EMAIL;
   const hook = process.env.CONTACT_WEBHOOK_URL;
@@ -63,16 +73,18 @@ export async function sendEnquiry(_prev: ContactState, formData: FormData): Prom
 
     if (resendKey && toEmail) {
       const text = [
-        `New enquiry from the ${site.name} website`,
+        `New ${side} enquiry from the ${site.name} website`,
         "",
         `Name: ${values.name}`,
         `Email: ${values.email}`,
         `Phone / WhatsApp: ${values.phone || "Not given"}`,
         `Company: ${values.company || "Not given"}`,
         `Service: ${values.service || "Not sure yet"}`,
-        `Monthly budget: ${values.budget || "Prefer not to say"}`,
+        ...(division === "marketing"
+          ? [`Monthly budget: ${values.budget || "Prefer not to say"}`]
+          : [`Sector: ${values.sector || "Not given"}`, `Engagement model: ${values.engagement || "Not sure yet"}`]),
         "",
-        "Goals:",
+        "Message:",
         values.message,
       ].join("\n");
       const res = await fetch("https://api.resend.com/emails", {
@@ -82,7 +94,7 @@ export async function sendEnquiry(_prev: ContactState, formData: FormData): Prom
           from: process.env.CONTACT_FROM_EMAIL || `${site.name} website <onboarding@resend.dev>`,
           to: toEmail.split(",").map((e) => e.trim()),
           reply_to: values.email,
-          subject: `New enquiry: ${values.name}${values.service ? ` (${values.service})` : ""}`,
+          subject: `New ${divisions[division].short.toLowerCase()} enquiry: ${values.name}${values.service ? ` (${values.service})` : ""}`,
           text,
         }),
       });

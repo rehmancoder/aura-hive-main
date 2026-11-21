@@ -130,6 +130,82 @@ export const scenes = {
     wave: [0, 0, 0, 0],
     pulse: [0, 0, 0, 0],
   },
+
+  /** Home page: the solid gold logo between the two doors (Marketing and Consultancy). */
+  gateway: {
+    shapes: ["auraShell", "auraShell", "auraShell", "auraShell", "auraShell", "auraShell"],
+    stages: 2,
+    heroBars: true,
+    desktop: [
+      { x: 0, y: -1.45, z: -1.5, s: 0.62 },
+      { x: 0, y: -1.45, z: -1.5, s: 0.62 },
+    ],
+    mobile: [
+      { x: 0, y: -0.75, z: -3, s: 0.55 },
+      { x: 0, y: -0.75, z: -3, s: 0.55 },
+    ],
+    opacity: { desktop: [0.8, 0.8], mobile: [0.6, 0.6] },
+    glow: [1, 1],
+    spin: [0, 0],
+    wave: [0, 0],
+    pulse: [0, 0],
+  },
+
+  /** Consultancy home: a skyline, the hive sphere, a wave, a KPI dial, dust, then the logo. */
+  consultancyHome: {
+    shapes: ["tower", "hiveSphere", "signalWave", "gauge", "dust", "logo"],
+    stages: 6,
+    heroBars: false,
+    desktop: [
+      { x: 3.0, y: -0.1, z: 0, s: 0.9 },
+      { x: 3.9, y: -0.2, z: 0, s: 0.85 },
+      { x: 0, y: -0.3, z: -1, s: 1.05 },
+      { x: -3.9, y: -2.0, z: 0, s: 0.62 },
+      { x: 0, y: 0, z: 0, s: 1 },
+      { x: 2.9, y: 0.1, z: 0, s: 0.92 },
+    ],
+    mobile: [
+      { x: 0, y: 1.1, z: 0, s: 0.72 },
+      { x: 0, y: 0.6, z: -1, s: 0.72 },
+      { x: 0, y: 0.4, z: -2, s: 0.7 },
+      { x: 1.2, y: -1.6, z: -1, s: 0.6 },
+      { x: 0, y: 0, z: 0, s: 1 },
+      { x: 0, y: 1.2, z: 0, s: 0.75 },
+    ],
+    opacity: { desktop: [1, 1, 1, 1, 0.55, 1], mobile: [0.8, 0.55, 0.55, 0.33, 0.3, 0.55] },
+    glow: [0.8, 0.25, 0, 0, 0, 1],
+    spin: [0.25, 1, 0, 0, 0, 0],
+    wave: [0, 0, 1, 0, 0, 0],
+    pulse: [0, 0, 0, 0, 0, 0],
+  },
+
+  /** Consultancy services: one shape per service group, then the logo. */
+  consultancyServices: {
+    shapes: ["tower", "gauge", "magnifier", "pdca", "star", "logo"],
+    stages: 6,
+    heroBars: false,
+    desktop: [
+      { x: 3.2, y: 0, z: 0, s: 0.95 },
+      { x: -4.1, y: -2.1, z: -1, s: 0.62 },
+      { x: -4.1, y: -2.1, z: -1, s: 0.62 },
+      { x: -4.1, y: -2.1, z: -1, s: 0.62 },
+      { x: -4.1, y: -2.1, z: -1, s: 0.62 },
+      { x: 2.9, y: 0.1, z: 0, s: 0.92 },
+    ],
+    mobile: [
+      { x: 0, y: 1.2, z: 0, s: 0.72 },
+      { x: 0, y: 0.8, z: -2, s: 0.7 },
+      { x: 0, y: 0.8, z: -2, s: 0.7 },
+      { x: 0, y: 0.8, z: -2, s: 0.7 },
+      { x: 0, y: 0.8, z: -2, s: 0.7 },
+      { x: 0, y: 1.2, z: 0, s: 0.75 },
+    ],
+    opacity: { desktop: [1, 0.65, 0.65, 0.65, 0.65, 1], mobile: [0.85, 0.35, 0.35, 0.35, 0.35, 0.6] },
+    glow: [0.7, 0.1, 0.1, 0.1, 0.1, 1],
+    spin: [0.2, 0, 0, 0.5, 0, 0],
+    wave: [0, 0, 0, 0, 0, 0],
+    pulse: [0, 0, 0, 0, 0, 0],
+  },
 } satisfies Record<string, SceneConfig>;
 
 export type SceneName = keyof typeof scenes;

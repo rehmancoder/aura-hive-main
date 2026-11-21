@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { about } from "@/lib/site";
+import type { DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
 import { gsap, useGsap } from "@/lib/motion";
 import { TiltCard } from "../motion/TiltCard";
 
@@ -9,7 +10,8 @@ import { TiltCard } from "../motion/TiltCard";
 const heights = ["lg:min-h-[26rem]", "lg:min-h-[34rem]", "lg:min-h-[26rem]"];
 
 /** Three values as three columns that rise like the bars of the logo. */
-export function Values() {
+export function Values({ division }: { division: DivisionId }) {
+  const about = getAbout(division);
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {

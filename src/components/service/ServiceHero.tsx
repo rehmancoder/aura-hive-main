@@ -1,10 +1,12 @@
-import Link from "next/link";
 import { MagneticLink } from "../motion/Magnetic";
-import { contactHref, groupOf, type Service, type ServiceDetail } from "@/lib/site";
+import { Breadcrumb } from "../shared/Breadcrumb";
+import type { Service, ServiceDetail } from "@/lib/site";
+import { getDivision, groupOfIn, type DivisionId } from "@/lib/divisions";
 
 /** Hero for a single service page. The service name leads the H1 for search; the headline sells it. */
-export function ServiceHero({ service, detail }: { service: Service; detail: ServiceDetail }) {
-  const group = groupOf(service.slug);
+export function ServiceHero({ division, service, detail }: { division: DivisionId; service: Service; detail: ServiceDetail }) {
+  const d = getDivision(division);
+  const group = groupOfIn(d, service.slug);
   const words = detail.headline.split(" ");
 
   return (
@@ -19,25 +21,7 @@ export function ServiceHero({ service, detail }: { service: Service; detail: Ser
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-28 sm:px-8 md:pb-24">
-        <nav aria-label="Breadcrumb" className="fade-rise mb-6 text-sm text-wax/60" style={{ animationDelay: "var(--intro)" }}>
-          <ol className="flex flex-wrap items-center gap-2">
-            <li>
-              <Link href="/" className="transition-colors hover:text-honey">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden className="h-3 w-[2px] rounded-full bg-honey/60" />
-            <li>
-              <Link href="/services" className="transition-colors hover:text-honey">
-                Services
-              </Link>
-            </li>
-            <li aria-hidden className="h-3 w-[2px] rounded-full bg-honey/60" />
-            <li aria-current="page" className="text-wax">
-              {service.title}
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumb division={division} trail={[{ label: "Services", href: d.servicesPath }, { label: service.title }]} />
 
         <div className="max-w-[46rem]">
           <h1 id="service-title">
@@ -71,10 +55,10 @@ export function ServiceHero({ service, detail }: { service: Service; detail: Ser
           </p>
           <div className="fade-rise mt-9 flex flex-wrap items-center gap-3" style={{ animationDelay: "calc(var(--intro) + 800ms)" }}>
             <MagneticLink
-              href={contactHref({ service: service.slug })}
+              href={d.contactHref({ service: service.slug })}
               className="inline-block rounded-full bg-honey px-7 py-4 text-base font-semibold text-ink transition-colors hover:bg-wax sm:px-8"
             >
-              Start a project
+              {d.cta}
             </MagneticLink>
             <span className="rounded-full border border-wax/15 bg-ink/50 px-4 py-2.5 text-sm text-wax/75 backdrop-blur-md">
               Part of {group.title}

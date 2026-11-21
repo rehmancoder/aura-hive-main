@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LogoMark } from "./Logo";
-import { contactHref, contactPath, nav, serviceGroups, servicePath, site } from "@/lib/site";
+import { GroupMark } from "./shared/GroupMark";
+import { site } from "@/lib/site";
+import { divisionFromPath, divisions, getDivision, type Division } from "@/lib/divisions";
 import { findOnPage, lockScroll } from "@/lib/scroll";
 
 /* ------------------------------------------------------------------ */
@@ -15,7 +17,11 @@ export function Header() {
   const [hidden, setHidden] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const onContact = usePathname() === contactPath;
+  const pathname = usePathname();
+  const id = divisionFromPath(pathname);
+  // On the home page (where visitors choose a side) the bar shows only the logo.
+  const d = id ? getDivision(id) : null;
+  const onContact = !!d && pathname === d.contactPath;
   const anchor = useRef(0);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
@@ -50,7 +56,7 @@ export function Header() {
   useEffect(() => {
     if (!menuOpen) return;
     lockScroll(true);
-    const behind = [findOnPage("main"), document.querySelector("footer")];
+    const behind = [findOnPage("main"), ...Array.from(document.querySelectorAll("footer"))];
     behind.forEach((el) => el?.setAttribute("inert", ""));
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && closeMenu(true);
     const onResize = () => window.innerWidth >= 1024 && closeMenu();
@@ -65,6 +71,7 @@ export function Header() {
   }, [menuOpen, closeMenu]);
 
   const showBar = !hidden || menuOpen;
+  const menuIsOpen = menuOpen && !!d;
 
   return (
     <>
@@ -78,29 +85,38 @@ export function Header() {
         <div
           className={`transition-[transform,background-color,backdrop-filter] duration-500 ease-[var(--ease-honey)] ${
             showBar ? "translate-y-0" : "-translate-y-full"
-          } ${scrolled && !menuOpen ? "bg-ink/60 backdrop-blur-xl" : "bg-transparent"}`}
+          } ${scrolled && !menuIsOpen ? "bg-ink/60 backdrop-blur-xl" : "bg-transparent"}`}
         >
           <div className="relative mx-auto flex h-[4.5rem] max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 md:h-20">
             <Link
-              href="/"
+              href={d ? d.base : "/"}
               onClick={() => closeMenu()}
               className="flex shrink-0 items-center gap-2.5 text-honey"
-              aria-label={`${site.name} home`}
+              aria-label={d ? `${site.name} ${d.name} home` : `${site.name} home`}
             >
               <LogoMark className="h-7 w-auto" />
-              <span className="text-lg font-semibold tracking-tight text-wax">{site.name}</span>
+              <span className="flex flex-col leading-none">
+                <span className="text-lg font-semibold tracking-tight text-wax">{site.name}</span>
+                <span className="mt-1 text-[13px] font-medium uppercase leading-none tracking-[0.1em] text-honey/80">
+                  {d ? d.name : "Creative Solutions"}
+                </span>
+              </span>
             </Link>
 
-            <DesktopNav />
+            {d ? <DesktopNav d={d} /> : null}
 
             <div className="flex items-center gap-2.5 sm:gap-3">
+              {d ? <SideSwitch current={d.id} className="hidden xl:flex" /> : null}
               {/* On the contact page itself, this jumps to the form instead */}
-              <Link
-                href={onContact ? "#contact-form" : contactHref()}
-                className="hidden rounded-full bg-honey px-5 py-2.5 text-[15px] font-semibold text-ink transition-colors hover:bg-wax sm:inline-block"
-              >
-                {onContact ? "Go to the form" : "Start a project"}
-              </Link>
+              {d ? (
+                <Link
+                  href={onContact ? "#contact-form" : d.contactHref()}
+                  className="hidden rounded-full bg-honey px-5 py-2.5 text-[15px] font-semibold text-ink transition-colors hover:bg-wax sm:inline-block"
+                >
+                  {onContact ? "Go to the form" : d.cta}
+                </Link>
+              ) : null}
+              {d ? (
               <button
                 ref={toggleRef}
                 type="button"
@@ -129,12 +145,13 @@ export function Header() {
                   />
                 </span>
               </button>
+              ) : null}
             </div>
           </div>
         </div>
       </header>
 
-      <MobileMenu open={menuOpen} onClose={closeMenu} />
+      {d ? <MobileMenu d={d} open={menuIsOpen} onClose={closeMenu} /> : null}
     </>
   );
 }
@@ -149,7 +166,28 @@ function useIsCurrent() {
   return (href: string) => !href.includes("#") && (href === "/" ? pathname === "/" : pathname.startsWith(href));
 }
 
-function DesktopNav() {
+/** Two tabs to move between Marketing Solutions and Consultancy Solutions. */
+function SideSwitch({ current, className = "", onNavigate }: { current: Division["id"]; className?: string; onNavigate?: () => void }) {
+  return (
+    <nav aria-label="Choose a side" className={`items-center rounded-full border border-wax/15 bg-ink/50 p-1 backdrop-blur-md ${className}`}>
+      {Object.values(divisions).map((x) => (
+        <Link
+          key={x.id}
+          href={x.base}
+          onClick={onNavigate}
+          aria-current={x.id === current ? "true" : undefined}
+          className={`rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
+            x.id === current ? "bg-wax/[0.12] text-honey" : "text-wax/65 hover:text-honey"
+          }`}
+        >
+          {x.short}
+        </Link>
+      ))}
+    </nav>
+  );
+}
+
+function DesktopNav({ d }: { d: Division }) {
   const isCurrent = useIsCurrent();
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLLIElement>(null);
@@ -194,8 +232,8 @@ function DesktopNav() {
   return (
     <nav aria-label="Main" className="hidden lg:block">
       <ul className="flex items-center gap-1 text-[15px] text-wax/80">
-        {nav.map((item) =>
-          "dropdown" in item ? (
+        {d.nav.map((item) =>
+          item.dropdown ? (
             <li
               key={item.href}
               ref={wrap}
@@ -232,31 +270,23 @@ function DesktopNav() {
               {/* Mega menu: three columns of services */}
               <div
                 id="services-menu"
-                className={`absolute left-1/2 top-full w-[min(58rem,calc(100vw-3rem))] -translate-x-1/2 pt-1 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-honey)] ${
-                  open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"
-                }`}
+                className={`absolute left-1/2 top-full -translate-x-1/2 pt-1 transition-[opacity,transform,visibility] duration-300 ease-[var(--ease-honey)] ${
+                  d.groups.length > 3 ? "w-[min(70rem,calc(100vw-3rem))]" : "w-[min(58rem,calc(100vw-3rem))]"
+                } ${open ? "visible translate-y-0 opacity-100" : "invisible -translate-y-2 opacity-0"}`}
               >
                 <div className="overflow-hidden rounded-[28px] border border-wax/12 bg-comb/95 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-                  <div className="grid grid-cols-3 gap-2 p-3">
-                    {serviceGroups.map((g, gi) => (
-                      <div key={g.title} className="rounded-[20px] p-4">
+                  <div className="grid gap-2 p-3" style={{ gridTemplateColumns: `repeat(${d.groups.length}, minmax(0, 1fr))` }}>
+                    {d.groups.map((g, gi) => (
+                      <div key={g.title} className={`rounded-[20px] ${d.groups.length > 3 ? "p-3" : "p-4"}`}>
                         <p className="flex items-center gap-2.5 pb-3 text-sm font-semibold text-honey">
-                          <span aria-hidden className="flex h-4 items-end gap-[3px]">
-                            {[0.55, 1, 0.55].map((h, i) => (
-                              <span
-                                key={i}
-                                className={`w-[3px] rounded-full ${i === gi ? "bg-honey" : "bg-honey/35"}`}
-                                style={{ height: `${h * 100}%` }}
-                              />
-                            ))}
-                          </span>
+                          <GroupMark index={gi} total={d.groups.length} />
                           {g.title}
                         </p>
                         <ul className="space-y-1">
                           {g.items.map((s) => (
                             <li key={s.slug}>
                               <Link
-                                href={servicePath(s.slug)}
+                                href={d.servicePath(s.slug)}
                                 onClick={() => setOpen(false)}
                                 className="block rounded-2xl px-3 py-3 transition-colors hover:bg-wax/[0.06] focus-visible:bg-wax/[0.06]"
                               >
@@ -270,17 +300,17 @@ function DesktopNav() {
                     ))}
                   </div>
                   <div className="flex items-center justify-between gap-6 border-t border-wax/10 bg-ink/40 px-7 py-4">
-                    <p className="text-sm text-wax/65">Not sure what you need? Tell us your goals and we&apos;ll recommend a plan.</p>
-                    <div className="flex items-center gap-5 text-sm font-semibold">
-                      <Link href="/services" onClick={() => setOpen(false)} className="text-wax transition-colors hover:text-honey">
+                    <p className="text-sm text-wax/65">{d.menuNote}</p>
+                    <div className="flex shrink-0 items-center gap-5 text-sm font-semibold">
+                      <Link href={d.servicesPath} onClick={() => setOpen(false)} className="text-wax transition-colors hover:text-honey">
                         All services
                       </Link>
                       <Link
-                        href={contactHref()}
+                        href={d.contactHref()}
                         onClick={() => setOpen(false)}
                         className="rounded-full bg-honey px-4 py-2 text-ink transition-colors hover:bg-wax"
                       >
-                        Start a project
+                        {d.cta}
                       </Link>
                     </div>
                   </div>
@@ -310,7 +340,7 @@ function DesktopNav() {
 /* Mobile and tablet menu                                              */
 /* ------------------------------------------------------------------ */
 
-function MobileMenu({ open, onClose }: { open: boolean; onClose: (returnFocus?: boolean) => void }) {
+function MobileMenu({ d, open, onClose }: { d: Division; open: boolean; onClose: (returnFocus?: boolean) => void }) {
   const isCurrent = useIsCurrent();
   const [servicesOpen, setServicesOpen] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
@@ -341,11 +371,14 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: (returnFocus?: 
         data-lenis-prevent
         className="relative flex h-full flex-col overflow-y-auto overscroll-contain px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-24 sm:px-8 md:pt-28"
       >
+        <div className="menu-item mb-6" style={{ "--i": 0 } as React.CSSProperties}>
+          <SideSwitch current={d.id} className="flex w-fit" onNavigate={() => onClose()} />
+        </div>
         <nav aria-label="Mobile" className="flex-1">
           <ul className="divide-y divide-wax/10 border-y border-wax/10">
-            {nav.map((item, i) => (
-              <li key={item.href} className="menu-item" style={{ "--i": i } as React.CSSProperties}>
-                {"dropdown" in item ? (
+            {d.nav.map((item, i) => (
+              <li key={item.href} className="menu-item" style={{ "--i": i + 1 } as React.CSSProperties}>
+                {item.dropdown ? (
                   <>
                     <button
                       type="button"
@@ -371,15 +404,15 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: (returnFocus?: 
                       }`}
                     >
                       <div className="overflow-hidden" inert={!servicesOpen}>
-                        <div className="grid gap-6 pb-6 pt-1 sm:grid-cols-3 sm:gap-4">
-                          {serviceGroups.map((g) => (
+                        <div className={`grid gap-6 pb-6 pt-1 sm:gap-4 ${d.groups.length > 3 ? "sm:grid-cols-2" : "sm:grid-cols-3"}`}>
+                          {d.groups.map((g) => (
                             <div key={g.title}>
                               <p className="pb-2 text-sm font-semibold text-honey">{g.title}</p>
                               <ul>
                                 {g.items.map((s) => (
                                   <li key={s.slug}>
                                     <Link
-                                      href={servicePath(s.slug)}
+                                      href={d.servicePath(s.slug)}
                                       onClick={() => onClose()}
                                       className="block py-2.5 text-[17px] text-wax/85 transition-colors hover:text-honey"
                                     >
@@ -392,7 +425,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: (returnFocus?: 
                           ))}
                         </div>
                         <Link
-                          href="/services"
+                          href={d.servicesPath}
                           onClick={() => onClose()}
                           className="mb-6 inline-block text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px]"
                         >
@@ -418,16 +451,16 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: (returnFocus?: 
           </ul>
         </nav>
 
-        <div className="menu-item mt-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between" style={{ "--i": nav.length } as React.CSSProperties}>
+        <div className="menu-item mt-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between" style={{ "--i": d.nav.length + 1 } as React.CSSProperties}>
           <Link
-            href={contactHref()}
+            href={d.contactHref()}
             onClick={() => onClose()}
             className="inline-flex w-full items-center justify-center rounded-full bg-honey px-7 py-4 text-base font-semibold text-ink sm:w-auto"
           >
-            Start a project
+            {d.cta}
           </Link>
           <p className="text-center text-sm text-wax/60 sm:text-right">
-            100% online. Email us at <span className="select-all text-wax">{site.email}</span>
+            {d.reachNote} <span className="select-all text-wax">{site.email}</span>
           </p>
         </div>
       </div>

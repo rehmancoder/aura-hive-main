@@ -1,48 +1,39 @@
 import { BackgroundCanvas } from "@/components/three/BackgroundCanvas";
-import { Hero } from "@/components/sections/Hero";
-import { Marquee } from "@/components/sections/Marquee";
-import { HiveSection } from "@/components/sections/HiveSection";
-import { ServicesScroller } from "@/components/sections/ServicesScroller";
-import { Industries } from "@/components/sections/Industries";
-import { Showcase } from "@/components/sections/Showcase";
-import { Process } from "@/components/sections/Process";
-import { Faq } from "@/components/sections/Faq";
-import { FinalCta } from "@/components/sections/FinalCta";
-import { faqs, industries, marqueeServices, services, site, tools } from "@/lib/site";
+import { Doors } from "@/components/gateway/Doors";
+import { Footer } from "@/components/Footer";
+import { ld, pageMetadata } from "@/components/pages/shared";
+import { divisions } from "@/lib/divisions";
+import { site } from "@/lib/site";
 import { siteUrl } from "@/lib/env";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  alternates: { canonical: "/" },
-  openGraph: { url: "/" },
-};
+export const metadata = pageMetadata({
+  title: site.companyTitle,
+  description: site.companyDescription,
+  path: "/",
+  absoluteTitle: true,
+});
 
-// Structured data: helps Google show the business, services and FAQ answers in results.
+// Structured data: the company, its two sides and the website.
 const jsonLd = {
   "@context": "https://schema.org",
   "@graph": [
     {
-      // Fully online business: no shop or office, so no street address or opening hours.
-      "@type": "OnlineBusiness",
+      "@type": "Organization",
       "@id": `${siteUrl}/#organization`,
       name: site.name,
-      description: site.description,
+      legalName: site.legalName,
+      description: site.companyDescription,
       url: siteUrl,
       logo: `${siteUrl}/icon.svg`,
       image: `${siteUrl}/opengraph-image.png`,
       email: site.email,
       areaServed: site.areaServed,
       sameAs: Object.values(site.socials),
-      knowsAbout: services.map((s) => s.title),
-      audience: industries.map((i) => ({ "@type": "BusinessAudience", audienceType: i.name })),
-      hasOfferCatalog: {
-        "@type": "OfferCatalog",
-        name: "Digital marketing services",
-        itemListElement: services.map((s) => ({
-          "@type": "Offer",
-          itemOffered: { "@type": "Service", name: s.title, description: s.body },
-        })),
-      },
+      subOrganization: Object.values(divisions).map((d) => ({
+        "@id": `${siteUrl}${d.orgId}`,
+        name: `${site.name} ${d.name}`,
+        url: `${siteUrl}${d.base}`,
+      })),
     },
     {
       "@type": "WebSite",
@@ -52,37 +43,19 @@ const jsonLd = {
       publisher: { "@id": `${siteUrl}/#organization` },
       inLanguage: "en",
     },
-    {
-      "@type": "FAQPage",
-      mainEntity: faqs.map((f) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
-    },
   ],
 };
 
+/** Home page: visitors choose Marketing Solutions or Consultancy Solutions. */
 export default function Home() {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
-      />
-      <BackgroundCanvas scene="home" />
+      <script type="application/ld+json" dangerouslySetInnerHTML={ld(jsonLd)} />
+      <BackgroundCanvas scene="gateway" />
       <main id="main" className="relative z-10">
-        <Hero />
-        <Marquee items={marqueeServices} label="Our services" />
-        <HiveSection />
-        <ServicesScroller />
-        <Industries />
-        <Showcase />
-        <Process />
-        <Marquee items={tools} reverse outline label="Platforms we work with" />
-        <Faq stage={4} />
-        <FinalCta />
+        <Doors />
       </main>
+      <Footer />
     </>
   );
 }

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { contactHref, servicePath, services, servicesPage } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
+import { getServicesCopy } from "@/lib/pages";
 import { gsap, useGsap } from "@/lib/motion";
 
-const bySlug = (slug: string) => services.find((s) => s.slug === slug)!;
-
 /** Three common combinations. Each card's three services slide together as it scrolls into view. */
-export function Combos() {
+export function Combos({ division, stage = 4 }: { division: DivisionId; stage?: number | null }) {
+  const d = getDivision(division);
+  const servicesPage = getServicesCopy(division);
+  const bySlug = (slug: string) => d.services.find((s) => s.slug === slug)!;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -29,7 +31,7 @@ export function Combos() {
   });
 
   return (
-    <section ref={root} data-stage="4" aria-labelledby="combos-title" className="relative py-24 md:py-36">
+    <section ref={root} data-stage={stage ?? undefined} aria-labelledby="combos-title" className="relative py-24 md:py-36">
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <h2 id="combos-title" className="display text-[clamp(2.75rem,7vw,6.5rem)] text-wax">
@@ -53,7 +55,7 @@ export function Combos() {
                   return (
                     <li key={slug} data-chip>
                       <Link
-                        href={servicePath(slug)}
+                        href={d.servicePath(slug)}
                         className="flex items-center justify-between gap-3 rounded-2xl border border-wax/10 bg-ink/60 px-4 py-3.5 text-[15px] font-medium text-wax transition-colors hover:border-honey/50 hover:text-honey sm:text-base"
                       >
                         {s.title}
@@ -66,10 +68,10 @@ export function Combos() {
               <h3 className="display mt-10 text-[clamp(2.25rem,3.6vw,3.25rem)] text-wax">{c.title}</h3>
               <p className="mt-3 flex-1 text-base leading-relaxed text-wax/75">{c.body}</p>
               <Link
-                href={contactHref({ plan: c.id })}
+                href={d.contactHref({ plan: c.id })}
                 className="mt-8 inline-block w-fit text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px] transition-colors hover:text-honey"
               >
-                Ask about {c.title.toLowerCase()}
+                Ask about {c.title.charAt(0).toLowerCase() + c.title.slice(1)}
               </Link>
             </li>
           ))}

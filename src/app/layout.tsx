@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { site } from "@/lib/site";
 import { isProduction, siteUrl } from "@/lib/env";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Preloader } from "@/components/Preloader";
 import { SmoothScroll } from "@/components/motion/SmoothScroll";
 import { Cursor } from "@/components/motion/Cursor";
@@ -27,27 +26,27 @@ const sofiaXC = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: site.title,
+    default: site.companyTitle,
     template: `%s | ${site.name}`,
   },
-  description: site.description,
+  description: site.companyDescription,
   keywords: [...site.keywords],
   applicationName: site.name,
   authors: [{ name: site.name, url: siteUrl }],
   creator: site.name,
   publisher: site.name,
-  category: "Marketing",
+  category: "Business",
   openGraph: {
     type: "website",
     siteName: site.name,
-    title: site.title,
-    description: site.description,
+    title: site.companyTitle,
+    description: site.companyDescription,
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: site.title,
-    description: site.description,
+    title: site.companyTitle,
+    description: site.companyDescription,
   },
   robots: {
     index: isProduction,
@@ -74,13 +73,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${sofia.variable} ${sofiaXC.variable} antialiased`}>
       <body className="min-h-dvh">
-        {/* Shared by every page */}
+        {/* Shared by every page. The header follows the address: Marketing, Consultancy, or the home page chooser.
+            Each side's layout adds its own footer. */}
         <Preloader />
         <SmoothScroll />
         <Cursor />
         <Header />
         {children}
-        <Footer />
       </body>
     </html>
   );

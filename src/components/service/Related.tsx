@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useRef } from "react";
 import { gsap, useGsap } from "@/lib/motion";
-import { groupOf, servicePath, services, type Service } from "@/lib/site";
+import type { Service } from "@/lib/site";
+import { getDivision, groupOfIn, type DivisionId } from "@/lib/divisions";
 
 /** The other services in the same group, plus a link back to all services. */
-export function Related({ service }: { service: Service }) {
+export function Related({ division, service }: { division: DivisionId; service: Service }) {
   const root = useRef<HTMLElement>(null);
-  const group = groupOf(service.slug);
-  const others = group.slugs.filter((s) => s !== service.slug).map((s) => services.find((x) => x.slug === s)!);
+  const d = getDivision(division);
+  const group = groupOfIn(d, service.slug);
+  const others = group.slugs.filter((s) => s !== service.slug).map((s) => d.services.find((x) => x.slug === s)!);
 
   useGsap(root, (el) => {
     gsap.from(el.querySelectorAll("[data-related]"), {
@@ -30,18 +32,18 @@ export function Related({ service }: { service: Service }) {
             Works well with
           </h2>
           <Link
-            href="/services"
+            href={d.servicesPath}
             className="w-fit text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px] transition-colors hover:text-honey"
           >
-            See all nine services
+            See all {d.countWord} services
           </Link>
         </div>
 
         <ul className="mt-12 grid gap-4 md:mt-16 md:grid-cols-2 md:gap-5">
           {others.map((s) => (
-            <li key={s.slug} data-related>
+            <li key={s.slug} data-related className={others.length === 1 ? "md:col-span-2" : undefined}>
               <Link
-                href={servicePath(s.slug)}
+                href={d.servicePath(s.slug)}
                 className="group relative flex h-full flex-col justify-between gap-12 overflow-hidden rounded-[24px] border border-wax/10 bg-comb/60 p-6 backdrop-blur-md transition-colors hover:border-honey/50 sm:p-8 md:rounded-[32px] md:p-10"
               >
                 <span

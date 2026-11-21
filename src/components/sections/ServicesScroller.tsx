@@ -2,14 +2,48 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { servicePath, services } from "@/lib/site";
+import { servicePath, services, marketingBase } from "@/lib/site";
 import { gsap, useGsap } from "@/lib/motion";
 
 /**
  * Tablet and desktop: the section pins and vertical scrolling moves the service panels sideways.
  * Phones: the same panels stack vertically, which is easier to read and scroll with a thumb.
  */
-export function ServicesScroller() {
+export type Panel = {
+  key: string;
+  title: string;
+  body: string;
+  word: string;
+  tags: readonly string[];
+  href: string;
+  linkLabel: string;
+  /** Optional list of links inside the panel (e.g. the services in a group). */
+  links?: readonly { label: string; href: string }[];
+};
+
+const marketingPanels: Panel[] = services.map((s) => ({
+  key: s.slug,
+  title: s.title,
+  body: s.body,
+  word: s.word,
+  tags: s.tags,
+  href: servicePath(s.slug),
+  linkLabel: `Explore ${s.title}`,
+}));
+
+type Props = {
+  title?: string;
+  body?: string;
+  allHref?: string;
+  panels?: readonly Panel[];
+};
+
+export function ServicesScroller({
+  title = "Everything your brand needs to grow online.",
+  body = "Ads, social media, brand, video and CRM, planned and run by one team. Every service shares the same data, so each one makes the others work harder.",
+  allHref = `${marketingBase}/services`,
+  panels = marketingPanels,
+}: Props) {
   const root = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
@@ -93,23 +127,20 @@ export function ServicesScroller() {
       >
         <div className="flex shrink-0 flex-col justify-center pb-6 md:w-[44vw] md:max-w-[40rem] md:pb-0">
           <h2 id="services-title" className="display text-[clamp(2.75rem,7.5vw,7rem)] text-wax">
-            Everything your brand needs to grow online.
+            {title}
           </h2>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-wax/70 sm:text-lg">
-            Ads, social media, brand, video and CRM, planned and run by one team. Every service shares the same data,
-            so each one makes the others work harder.
-          </p>
+          <p className="mt-6 max-w-md text-base leading-relaxed text-wax/70 sm:text-lg">{body}</p>
           <Link
-            href="/services"
+            href={allHref}
             className="mt-8 inline-flex w-fit items-center gap-3 rounded-full border border-honey/50 px-6 py-3 text-base font-medium text-honey transition-colors hover:bg-honey hover:text-ink"
           >
             View all services
           </Link>
         </div>
 
-        {services.map((s) => (
+        {panels.map((s) => (
           <article
-            key={s.slug}
+            key={s.key}
             data-panel
             className="relative flex shrink-0 flex-col justify-end overflow-hidden rounded-[28px] border border-wax/12 bg-comb/40 p-6 pt-[clamp(6.5rem,24vw,9rem)] backdrop-blur-[6px] sm:p-8 sm:pt-36 md:h-[68vh] md:max-h-[44rem] md:w-[min(46vw,38rem)] md:rounded-[32px] md:p-10 lg:p-12"
           >
@@ -124,18 +155,35 @@ export function ServicesScroller() {
             <div data-panel-body className="relative">
               <h3 className="display text-[clamp(2.25rem,4.4vw,4rem)] text-wax">{s.title}</h3>
               <p className="mt-4 max-w-lg text-base leading-relaxed text-wax/75 lg:text-lg">{s.body}</p>
-              <ul className="mt-6 flex flex-wrap gap-2" aria-label={`${s.title} includes`}>
-                {s.tags.map((t) => (
-                  <li key={t} className="rounded-full border border-honey/35 px-3.5 py-1.5 text-sm text-honey">
-                    {t}
-                  </li>
-                ))}
-              </ul>
+              {s.links ? (
+                <ul className="mt-6 grid gap-1 border-t border-wax/10 pt-4">
+                  {s.links.map((l) => (
+                    <li key={l.href}>
+                      <Link
+                        href={l.href}
+                        className="group flex items-center justify-between gap-4 py-1.5 text-base font-medium text-wax/90 transition-colors hover:text-honey lg:text-lg"
+                      >
+                        {l.label}
+                        <span aria-hidden className="h-4 w-1.5 shrink-0 rounded-full bg-honey/50 transition-colors group-hover:bg-honey" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {s.tags.length ? (
+                <ul className="mt-6 flex flex-wrap gap-2" aria-label={`${s.title} includes`}>
+                  {s.tags.map((t) => (
+                    <li key={t} className="rounded-full border border-honey/35 px-3.5 py-1.5 text-sm text-honey">
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <Link
-                href={servicePath(s.slug)}
+                href={s.href}
                 className="mt-7 inline-block text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px] transition-colors hover:text-honey"
               >
-                Explore {s.title}
+                {s.linkLabel}
               </Link>
             </div>
           </article>

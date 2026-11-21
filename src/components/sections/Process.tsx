@@ -1,10 +1,25 @@
 "use client";
 
 import { useRef } from "react";
-import { included, steps } from "@/lib/site";
+import { included as marketingIncluded, steps as marketingSteps } from "@/lib/site";
 import { gsap, ScrollTrigger, useGsap } from "@/lib/motion";
 
-export function Process() {
+type Props = {
+  title?: string;
+  intro?: string;
+  steps?: readonly { title: string; body: string }[];
+  includedTitle?: string;
+  included?: readonly { value: number; suffix: string; label: string }[];
+};
+
+/** "How we work": numbered steps on a line that fills as you scroll, then counters that tick up. */
+export function Process({
+  title = "How we grow you, month after month",
+  intro = "Four steps, repeated every month. Each cycle starts from what the last one taught the hive.",
+  steps = marketingSteps,
+  includedTitle = "Included on every account",
+  included = marketingIncluded,
+}: Props) {
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -49,11 +64,9 @@ export function Process() {
         {/* Below the heading, the left half stays open on desktop: the particle swarm builds growth columns there. */}
         <div>
           <h2 id="process-title" className="display text-[clamp(2.75rem,7vw,6.5rem)] text-wax">
-            How we grow you, month after month
+            {title}
           </h2>
-          <p className="mt-6 max-w-md text-base leading-relaxed text-wax/70 sm:text-lg">
-            Four steps, repeated every month. Each cycle starts from what the last one taught the hive.
-          </p>
+          <p className="mt-6 max-w-md text-base leading-relaxed text-wax/70 sm:text-lg">{intro}</p>
         </div>
 
         <ol data-steps className="relative pl-9 md:pl-14">
@@ -77,7 +90,7 @@ export function Process() {
       </div>
 
       <div className="mx-auto mt-20 max-w-7xl px-5 sm:px-8 md:mt-32">
-        <h3 className="text-xl font-semibold text-wax">Included on every account</h3>
+        <h3 className="text-xl font-semibold text-wax">{includedTitle}</h3>
         <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-[24px] md:mt-8 md:rounded-[28px] border border-wax/10 bg-wax/10 lg:grid-cols-4">
           {included.map((item) => (
             <div key={item.label} className="flex flex-col-reverse gap-2 bg-ink/80 p-5 backdrop-blur-md sm:p-6 md:gap-3 md:p-9">

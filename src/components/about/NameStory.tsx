@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { about } from "@/lib/site";
+import type { DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
 import { gsap, useGsap } from "@/lib/motion";
 
 /** "Aura" and "Hive" as giant outlined words that fill with gold as you scroll past them. */
-export function NameStory() {
+export function NameStory({ division }: { division: DivisionId }) {
+  const about = getAbout(division);
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {

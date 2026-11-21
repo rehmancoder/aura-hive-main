@@ -1,7 +1,8 @@
-import Link from "next/link";
 import { FloatingCards } from "../shared/FloatingCards";
+import { Breadcrumb } from "../shared/Breadcrumb";
 import { MagneticLink } from "../motion/Magnetic";
-import { about, contactHref } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
 
 // Cards float around the particle halo on the right.
 const spots = [
@@ -11,7 +12,9 @@ const spots = [
   { className: "right-[6%] top-[66%]", depth: 22 },
 ];
 
-export function AboutHero() {
+export function AboutHero({ division }: { division: DivisionId }) {
+  const d = getDivision(division);
+  const about = getAbout(division);
   return (
     <section aria-labelledby="about-title" className="relative flex min-h-[max(100svh,620px)] items-end overflow-hidden">
       <div
@@ -26,26 +29,14 @@ export function AboutHero() {
       <FloatingCards cards={about.chips} spots={spots} />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-28 sm:px-8 md:pb-28">
-        <nav aria-label="Breadcrumb" className="fade-rise mb-6 text-sm text-wax/60" style={{ animationDelay: "var(--intro)" }}>
-          <ol className="flex items-center gap-2">
-            <li>
-              <Link href="/" className="transition-colors hover:text-honey">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden className="h-3 w-[2px] rounded-full bg-honey/60" />
-            <li aria-current="page" className="text-wax">
-              About us
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumb division={division} trail={[{ label: "About us" }]} />
 
         <div className="max-w-[44rem]">
           <h1 id="about-title" className="display text-[clamp(3.25rem,10vw,8.5rem)] text-wax">
             {about.hero.headline.map((w, i) => (
               <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-top">
                 <span
-                  className={`word-rise inline-block ${w === "aura" ? "text-honey" : ""}`}
+                  className={`word-rise inline-block ${w === about.hero.highlight ? "text-honey" : ""}`}
                   style={{ animationDelay: `calc(var(--intro) + ${80 + i * 70}ms)` }}
                 >
                   {w}
@@ -62,10 +53,10 @@ export function AboutHero() {
           </p>
           <div className="fade-rise mt-10 flex flex-wrap items-center gap-3" style={{ animationDelay: "calc(var(--intro) + 800ms)" }}>
             <MagneticLink
-              href={contactHref()}
+              href={d.contactHref()}
               className="inline-block rounded-full bg-honey px-7 py-4 text-base font-semibold text-ink transition-colors hover:bg-wax sm:px-8"
             >
-              Start a project
+              {d.cta}
             </MagneticLink>
             <a
               href="#story"

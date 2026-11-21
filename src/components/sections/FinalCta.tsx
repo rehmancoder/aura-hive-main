@@ -2,10 +2,12 @@
 
 import { useRef } from "react";
 import { MagneticLink } from "../motion/Magnetic";
-import { contactHref, site } from "@/lib/site";
+import { site } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
 import { gsap, useGsap } from "@/lib/motion";
 
 type Props = {
+  division: DivisionId;
   /** Two short lines; the second is set in gold. */
   lines?: [string, string];
   body?: string;
@@ -16,12 +18,8 @@ type Props = {
 };
 
 /** Closing call to action, used at the end of every page. The particle swarm re-forms the logo behind it. */
-export function FinalCta({
-  lines = ["Let's build", "your hive."],
-  body = "Tell us about your brand and your goals. We'll review your ads, social pages and CRM, and send a short plan with a clear proposal.",
-  stage = 5,
-  href = contactHref(),
-}: Props) {
+export function FinalCta({ division, lines, body, stage = 5, href }: Props) {
+  const d = getDivision(division);
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -46,22 +44,22 @@ export function FinalCta({
       <div className="relative mx-auto w-full max-w-7xl px-5 sm:px-8">
         <h2 id="cta-title" className="display text-[clamp(3.4rem,12vw,11.5rem)] leading-[0.82] text-wax">
           <span data-cta-line className="block overflow-hidden pb-[0.06em]">
-            <span className="inline-block">{lines[0]}</span>
+            <span className="inline-block">{(lines ?? d.finalCta.lines)[0]}</span>
           </span>
           <span data-cta-line className="block overflow-hidden pb-[0.06em]">
-            <span className="inline-block text-honey">{lines[1]}</span>
+            <span className="inline-block text-honey">{(lines ?? d.finalCta.lines)[1]}</span>
           </span>
         </h2>
         <p className="mt-7 max-w-lg text-base leading-relaxed text-wax/75 sm:text-lg">
-          {body}
+          {body ?? d.finalCta.body}
         </p>
         <div className="mt-10 flex flex-wrap items-center gap-6 md:gap-8">
           <MagneticLink
-            href={href}
+            href={href ?? d.contactHref()}
             strength={0.45}
             className="inline-flex h-32 w-32 items-center justify-center rounded-full bg-honey text-center text-base font-semibold text-ink transition-colors hover:bg-wax sm:h-36 sm:w-36 md:h-44 md:w-44 md:text-lg"
           >
-            Start a project
+            {d.cta}
           </MagneticLink>
           <p className="text-[15px] text-wax/65 sm:text-base">
             or email <span className="select-all text-wax">{site.email}</span>

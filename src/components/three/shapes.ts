@@ -79,6 +79,69 @@ const EDGES: [number, number][] = (() => {
   return out;
 })();
 
+
+type P2 = readonly [number, number];
+
+/** A random point on a closed or open polyline, evenly spread by length. */
+function onPolyline(r: Rand, pts: readonly P2[], closed = false): [number, number] {
+  const segs: [P2, P2, number][] = [];
+  let total = 0;
+  const n = closed ? pts.length : pts.length - 1;
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % pts.length];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    segs.push([a, b, len]);
+    total += len;
+  }
+  let d = r() * total;
+  for (const [a, b, len] of segs) {
+    if (d <= len) {
+      const t = d / len;
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    }
+    d -= len;
+  }
+  return [pts[0][0], pts[0][1]];
+}
+
+// Shield outline: flat top with rounded shoulders, curving down to a point.
+const SHIELD: P2[] = (() => {
+  const pts: P2[] = [];
+  for (let i = 0; i <= 12; i++) {
+    const t = i / 12;
+    pts.push([-1.9 + t * 3.8, 2.05 + Math.sin(t * Math.PI) * 0.18]);
+  }
+  for (let i = 0; i <= 24; i++) {
+    const t = i / 24;
+    // right side: straight, then a curve into the bottom point
+    const x = 1.9 * Math.cos((t * Math.PI) / 2) ** 0.8;
+    const y = 2.05 - t * 4.45;
+    pts.push([x, y]);
+  }
+  for (let i = 23; i >= 1; i--) {
+    const [x, y] = pts[13 + i];
+    pts.push([-x, y]);
+  }
+  return pts;
+})();
+
+// Five-pointed star outline.
+const STAR: P2[] = Array.from({ length: 10 }, (_, i) => {
+  const a = Math.PI / 2 + (i * Math.PI) / 5;
+  const rad = i % 2 ? 1.05 : 2.55;
+  return [Math.cos(a) * rad, Math.sin(a) * rad] as P2;
+});
+
+// Skyline of towers for the facilities scenes: x, depth, width, height.
+const TOWERS = [
+  { x: -2.5, z: 0.5, w: 0.9, h: 2.3 },
+  { x: -1.35, z: -0.4, w: 1.0, h: 3.6 },
+  { x: 0, z: 0.2, w: 1.15, h: 4.9 },
+  { x: 1.35, z: -0.5, w: 1.0, h: 3.1 },
+  { x: 2.5, z: 0.4, w: 0.9, h: 2.0 },
+];
+
 export const generators = {
   /** Loose shell hugging the logo bars (home hero). */
   auraShell(r: Rand): Vec {
@@ -413,6 +476,208 @@ export const generators = {
     }
     const p = orient(x, y, (r() - 0.5) * 0.12, 0.12, -0.3);
     return [p[0], CY + 0.2 + p[1], p[2]];
+  },
+
+  /** A skyline of towers drawn with edges and floor lines (buildings / facilities). */
+  tower(r: Rand): Vec {
+    const total = TOWERS.reduce((a, t) => a + t.h, 0);
+    let pick = r() * total;
+    const t = TOWERS.find((x) => (pick -= x.h) <= 0) ?? TOWERS[2];
+    const hw = t.w / 2;
+    const base = CY - 2.45;
+    const roll = r();
+    let x: number;
+    let y: number;
+    let z: number;
+    if (roll < 0.34) {
+      // vertical edges
+      const c = Math.floor(r() * 4);
+      x = t.x + (c % 2 ? hw : -hw);
+      z = t.z + (c < 2 ? hw : -hw);
+      y = base + r() * t.h;
+    } else if (roll < 0.86) {
+      // floor lines around the tower
+      const floors = Math.max(3, Math.round(t.h / 0.42));
+      y = base + (Math.floor(r() * floors) + 1) * (t.h / floors);
+      const side = Math.floor(r() * 4);
+      const u = (r() * 2 - 1) * hw;
+      [x, z] = [
+        [t.x + u, t.z + hw],
+        [t.x + hw, t.z + u],
+        [t.x + u, t.z - hw],
+        [t.x - hw, t.z + u],
+      ][side] as [number, number];
+    } else {
+      // windows: a scatter of lit points on the front face
+      x = t.x + (r() * 2 - 1) * hw * 0.85;
+      y = base + 0.2 + r() * (t.h - 0.3);
+      z = t.z + hw + 0.02;
+    }
+    const p = orient(x, y - CY, z, 0.08, -0.45);
+    return [p[0], CY + p[1], p[2]];
+  },
+
+  /** A dial with ticks and a needle near the top of the range (SLAs and KPIs). */
+  gauge(r: Rand): Vec {
+    const cy = -0.5;
+    const roll = r();
+    let x: number;
+    let y: number;
+    if (roll < 0.5) {
+      const a = -0.15 * Math.PI + r() * 1.3 * Math.PI;
+      const rad = 2.45 + (r() - 0.5) * 0.18;
+      [x, y] = [Math.cos(a) * rad, cy + Math.sin(a) * rad];
+    } else if (roll < 0.7) {
+      const tick = Math.floor(r() * 11);
+      const a = -0.15 * Math.PI + (tick / 10) * 1.3 * Math.PI;
+      const rad = 1.85 + r() * 0.35;
+      [x, y] = [Math.cos(a) * rad, cy + Math.sin(a) * rad];
+    } else if (roll < 0.86) {
+      const a = 0.22 * Math.PI;
+      const k = r() * 2.05;
+      const w = (r() - 0.5) * 0.12 * (1 - k / 2.2);
+      [x, y] = [Math.cos(a) * k - Math.sin(a) * w, cy + Math.sin(a) * k + Math.cos(a) * w];
+    } else if (roll < 0.94) {
+      const v = unitVector(r);
+      const k = Math.sqrt(r()) * 0.32;
+      return [v[0] * k, CY + cy + v[1] * k, v[2] * k];
+    } else {
+      const a = -0.15 * Math.PI + r() * 1.3 * Math.PI;
+      const rad = 1.35;
+      [x, y] = [Math.cos(a) * rad, cy + Math.sin(a) * rad];
+    }
+    const p = orient(x, y, (r() - 0.5) * 0.14, 0.1, -0.35);
+    return [p[0], CY + p[1], p[2]];
+  },
+
+  /** A shield with a tick inside (health, safety and fire). */
+  shield(r: Rand): Vec {
+    const roll = r();
+    let x: number;
+    let y: number;
+    if (roll < 0.5) {
+      [x, y] = onPolyline(r, SHIELD, true);
+    } else if (roll < 0.72) {
+      [x, y] = onPolyline(r, SHIELD, true);
+      [x, y] = [x * 0.8, 0.2 + y * 0.8];
+    } else {
+      const w = (r() - 0.5) * 0.16;
+      [x, y] = onPolyline(r, [
+        [-0.85, 0.05],
+        [-0.2, -0.65],
+        [1.05, 0.85],
+      ]);
+      x += w;
+      y += w;
+    }
+    const p = orient(x, y, (r() - 0.5) * 0.18, 0.05, -0.4);
+    return [p[0], CY + 0.15 + p[1], p[2]];
+  },
+
+  /** A leaf with its midrib and veins (energy and sustainability). */
+  leaf(r: Rand): Vec {
+    const L = 4.6;
+    const W = 1.35;
+    const roll = r();
+    let x: number;
+    let y: number;
+    if (roll < 0.5) {
+      const t = r();
+      const side = r() < 0.5 ? 1 : -1;
+      [x, y] = [(t - 0.5) * L, side * W * Math.sin(Math.PI * t) * (1 - 0.25 * t)];
+    } else if (roll < 0.66) {
+      const t = r();
+      [x, y] = [(t - 0.5) * L * 1.08, 0];
+    } else {
+      const vein = Math.floor(r() * 6);
+      const t0 = 0.15 + vein * 0.12;
+      const side = r() < 0.5 ? 1 : -1;
+      const k = r();
+      const t = t0 + k * 0.12;
+      const edge = W * Math.sin(Math.PI * t) * (1 - 0.25 * t) * 0.9;
+      [x, y] = [(t - 0.5) * L, side * edge * k];
+    }
+    const a = 0.62;
+    const p = orient(x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), (r() - 0.5) * 0.12, 0.15, -0.35);
+    return [p[0], CY + p[1], p[2]];
+  },
+
+  /** A gear with square teeth around a hub (assets and maintenance). */
+  gear(r: Rand): Vec {
+    const teeth = 10;
+    const roll = r();
+    const z = r() < 0.5 ? 0.22 : -0.22;
+    let x: number;
+    let y: number;
+    if (roll < 0.62) {
+      const a = r() * Math.PI * 2;
+      const phase = (a / (Math.PI * 2)) * teeth;
+      const f = phase - Math.floor(phase);
+      const outer = f > 0.08 && f < 0.48;
+      const nearEdge = Math.min(Math.abs(f - 0.08), Math.abs(f - 0.48)) < 0.035;
+      const rad = nearEdge ? 1.95 + r() * 0.5 : outer ? 2.45 : 1.95;
+      [x, y] = [Math.cos(a) * rad, Math.sin(a) * rad];
+    } else if (roll < 0.82) {
+      const a = r() * Math.PI * 2;
+      [x, y] = [Math.cos(a) * 0.75, Math.sin(a) * 0.75];
+    } else {
+      // four spokes
+      const s = Math.floor(r() * 4);
+      const a = s * (Math.PI / 2) + Math.PI / 4;
+      const k = 0.75 + r() * 1.2;
+      const w = (r() - 0.5) * 0.18;
+      [x, y] = [Math.cos(a) * k - Math.sin(a) * w, Math.sin(a) * k + Math.cos(a) * w];
+    }
+    const p = orient(x, y, z + (r() - 0.5) * 0.04, 0.35, -0.55);
+    return [p[0], CY + p[1], p[2]];
+  },
+
+  /** Plan-Do-Check-Act: four arrows chasing each other round a circle (ISO and IMS). */
+  pdca(r: Rand): Vec {
+    const q = Math.floor(r() * 4);
+    const start = q * (Math.PI / 2) + 0.12;
+    const span = Math.PI / 2 - 0.3;
+    const roll = r();
+    let x: number;
+    let y: number;
+    const R = 2.2;
+    if (roll < 0.72) {
+      const a = start + r() * span;
+      const rad = R + (r() - 0.5) * 0.3;
+      [x, y] = [Math.cos(a) * rad, Math.sin(a) * rad];
+    } else if (roll < 0.92) {
+      // arrowhead at the end of each arc
+      const a = start + span;
+      const tip: P2 = [Math.cos(a + 0.14) * R, Math.sin(a + 0.14) * R];
+      const back: P2 = [Math.cos(a - 0.08) * (R + 0.45), Math.sin(a - 0.08) * (R + 0.45)];
+      const back2: P2 = [Math.cos(a - 0.08) * (R - 0.45), Math.sin(a - 0.08) * (R - 0.45)];
+      [x, y] = onPolyline(r, [back, tip, back2]);
+    } else {
+      const v = unitVector(r);
+      const k = Math.sqrt(r()) * 0.45;
+      return [v[0] * k, CY + v[1] * k, v[2] * k];
+    }
+    const p = orient(x, y, (r() - 0.5) * 0.16, 0.22, -0.3);
+    return [p[0], CY + p[1], p[2]];
+  },
+
+  /** A five-pointed star with a smaller star inside (guest satisfaction). */
+  star(r: Rand): Vec {
+    const roll = r();
+    let x: number;
+    let y: number;
+    if (roll < 0.66) [x, y] = onPolyline(r, STAR, true);
+    else if (roll < 0.86) {
+      [x, y] = onPolyline(r, STAR, true);
+      [x, y] = [x * 0.55, y * 0.55];
+    } else {
+      // sparkles around the star
+      const a = r() * Math.PI * 2;
+      const rad = 3 + r() * 0.6;
+      [x, y] = [Math.cos(a) * rad, Math.sin(a) * rad * 0.9];
+    }
+    const p = orient(x, y, (r() - 0.5) * 0.14, 0.1, -0.35);
+    return [p[0], CY + 0.1 + p[1], p[2]];
   },
 } satisfies Record<string, (r: Rand) => Vec>;
 

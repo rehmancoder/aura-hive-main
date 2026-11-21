@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { servicePath, serviceGroups } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
+import { GroupMark } from "../shared/GroupMark";
 import { gsap, useGsap } from "@/lib/motion";
 
-type Props = { index: number; stage: number };
+type Props = { division: DivisionId; index: number; stage: number };
 
 /**
  * One group of three services. On desktop the group title stays pinned on the left while
  * its service cards scroll past on the right, and a gold bar fills as you move through them.
  */
-export function ServiceGroup({ index, stage }: Props) {
-  const group = serviceGroups[index];
+export function ServiceGroup({ division, index, stage }: Props) {
+  const d = getDivision(division);
+  const group = d.groups[index];
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -59,16 +61,8 @@ export function ServiceGroup({ index, stage }: Props) {
       <div className="mx-auto grid max-w-7xl gap-10 px-5 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <div className="flex items-center gap-3 text-[15px] font-medium text-honey">
-            <span aria-hidden className="flex h-5 items-end gap-[3px]">
-              {[0.55, 1, 0.55].map((h, i) => (
-                <span
-                  key={i}
-                  className={`w-[4px] rounded-full ${i === index ? "bg-honey" : "bg-honey/30"}`}
-                  style={{ height: `${h * 100}%` }}
-                />
-              ))}
-            </span>
-            Group {index + 1} of {serviceGroups.length}
+            <GroupMark index={index} total={d.groups.length} className="h-5" barClassName="w-[4px]" dim="bg-honey/30" />
+            Group {index + 1} of {d.groups.length}
           </div>
           <h2 id={`${group.id}-title`} className="display mt-5 text-[clamp(2.75rem,6.5vw,6rem)] text-wax">
             {group.title}
@@ -125,12 +119,12 @@ export function ServiceGroup({ index, stage }: Props) {
 
                 <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-4 border-t border-wax/10 pt-6">
                   <Link
-                    href={servicePath(s.slug)}
+                    href={d.servicePath(s.slug)}
                     className="rounded-full bg-wax/[0.08] px-5 py-3 text-[15px] font-semibold text-wax transition-colors hover:bg-honey hover:text-ink"
                   >
                     Explore {s.title}
                   </Link>
-                  <ul className="flex flex-wrap gap-2" aria-label={`${s.title} channels`}>
+                  <ul className="flex flex-wrap gap-2" aria-label={`${s.title} focus areas`}>
                     {s.tags.map((t) => (
                       <li key={t} className="rounded-full border border-honey/30 px-3 py-1 text-sm text-honey">
                         {t}

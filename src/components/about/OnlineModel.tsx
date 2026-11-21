@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { about } from "@/lib/site";
+import type { DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
 import { gsap, useGsap } from "@/lib/motion";
 
 /** How a fully online agency works. The particle globe sits on the left on desktop. */
-export function OnlineModel() {
+export function OnlineModel({ division }: { division: DivisionId }) {
+  const about = getAbout(division);
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -29,7 +31,7 @@ export function OnlineModel() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-honey/60" />
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-honey" />
             </span>
-            Online, wherever you are
+            {about.online.badge}
           </p>
           <h2 id="online-title" className="display mt-6 text-[clamp(2.75rem,7vw,6.5rem)] text-wax">
             {about.online.title}

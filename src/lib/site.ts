@@ -1,9 +1,18 @@
-// Central place for business details and page copy, used by the page, metadata and structured data.
+// Central place for business details and page copy, used by the pages, metadata and structured data.
 // Replace the placeholder values (email, phone, socials) before going live.
+//
+// The site has two sides: Marketing Solutions (/marketing, copy in this file) and
+// Consultancy Solutions (/consultancy, copy in consultancy.ts). The home page (/) lets visitors choose.
+
+import type { ShapeName } from "@/components/three/shapes";
 
 export const site = {
   name: "Aura Hive",
-  legalName: "Aura Hive",
+  legalName: "Aura Hive Creative Solutions L.L.C",
+  /** Title and description for the home page, where visitors choose a side. */
+  companyTitle: "Aura Hive Creative Solutions | Marketing and Consultancy Solutions",
+  companyDescription:
+    "Aura Hive Creative Solutions L.L.C. Marketing Solutions: Google Ads, Meta Ads, social media, branding, AI video and CRM automation. Consultancy Solutions: facilities management, ISO and IMS, hospitality and wellness consultancy.",
   tagline: "Online digital marketing agency",
   title: "Aura Hive | Digital Marketing Agency for Google Ads, Meta Ads & AI Growth",
   description:
@@ -34,8 +43,11 @@ export const site = {
   },
 } as const;
 
-/** Every "Start a project" button points here. */
-export const contactPath = "/contact";
+/** Marketing Solutions lives under this path. */
+export const marketingBase = "/marketing";
+
+/** Every "Start a project" button on the marketing side points here. */
+export const contactPath = `${marketingBase}/contact`;
 
 /** Contact link that pre-selects a service (or a popular combination) in the form. */
 export const contactHref = (opts: { service?: string; plan?: string } = {}) => {
@@ -145,7 +157,7 @@ export const services = [
   },
 ] as const satisfies readonly Service[];
 
-export const servicePath = (slug: string) => `/services/${slug}`;
+export const servicePath = (slug: string) => `${marketingBase}/services/${slug}`;
 
 /** Services grouped for the navigation dropdown: three columns, like the three bars of the logo. */
 export const serviceGroups = [
@@ -174,20 +186,20 @@ export const serviceGroups = [
 /* ------------------------------------------------------------------ */
 
 export const nav = [
-  { label: "Services", href: "/services", dropdown: true },
-  { label: "About us", href: "/about" },
-  { label: "How we work", href: "/#process" },
-  { label: "Contact us", href: "/contact" },
+  { label: "Services", href: `${marketingBase}/services`, dropdown: true },
+  { label: "About us", href: `${marketingBase}/about` },
+  { label: "How we work", href: `${marketingBase}#process` },
+  { label: "Contact us", href: contactPath },
 ] as const;
 
 export const footerLinks = {
   company: [
-    { label: "Home", href: "/" },
-    { label: "About us", href: "/about" },
-    { label: "All services", href: "/services" },
-    { label: "Industries", href: "/#industries" },
-    { label: "FAQ", href: "/#faq" },
-    { label: "Contact us", href: "/contact" },
+    { label: "Marketing home", href: marketingBase },
+    { label: "About us", href: `${marketingBase}/about` },
+    { label: "All services", href: `${marketingBase}/services` },
+    { label: "Industries", href: `${marketingBase}#industries` },
+    { label: "FAQ", href: `${marketingBase}#faq` },
+    { label: "Contact us", href: contactPath },
   ],
 } as const;
 
@@ -362,6 +374,7 @@ export const about = {
     "Meet Aura Hive, an online digital marketing agency that brings strategists, creatives and AI tools together to grow brands through ads, social media, AI video and CRM automation.",
   hero: {
     headline: ["We", "build", "the", "aura", "around", "your", "brand."],
+    highlight: "aura",
     body: "Aura Hive is an online digital marketing agency. We bring strategists, creatives and AI tools together in one team, so your brand gets seen, gets chosen and keeps growing.",
   },
   /** Floating cards around the 3D halo in the hero: who is in the hive. */
@@ -408,6 +421,7 @@ export const about = {
     ],
   },
   online: {
+    badge: "Online, wherever you are",
     title: "One team, fully online",
     intro:
       "We don't have a shop or an office, and that's deliberate. Everything we do happens online, which keeps us fast and keeps you close to the work.",
@@ -518,16 +532,7 @@ export type ServiceDetail = {
   headline: string;
   intro: string;
   /** Particle shape for the page's 3D hero (see components/three/shapes.ts). */
-  shape:
-    | "target"
-    | "magnifier"
-    | "feed"
-    | "postGrid"
-    | "gem"
-    | "growthColumns"
-    | "playButton"
-    | "network"
-    | "funnel";
+  shape: ShapeName;
   steps: readonly [Step, Step, Step];
   faqs: readonly Qa[];
 };
@@ -782,8 +787,10 @@ export const contactPage = {
     "Contact Aura Hive, an online digital marketing agency. Tell us about your brand and goals, and we'll reply with a short plan and a clear proposal for ads, social media, AI video and CRM.",
   hero: {
     headline: ["Let's", "grow", "your", "brand."],
+    highlight: "grow",
     body: "Tell us where your brand is today and where you want it to be. We read every message ourselves and reply with next steps.",
   },
+  badge: "100% online: we work with you wherever you are",
   steps: [
     { title: "We review", body: "We read your message and look at your current ads, social pages and website." },
     { title: "We talk", body: "We set up a short video call to understand your goals and answer your questions." },

@@ -2,11 +2,16 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { about, servicePath, serviceGroups } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
+import { GroupMark } from "../shared/GroupMark";
 import { gsap, useGsap } from "@/lib/motion";
 
 /** The nine services in their three groups, each linking to its own page. */
-export function ServicesOverview() {
+export function ServicesOverview({ division }: { division: DivisionId }) {
+  const d = getDivision(division);
+  const about = getAbout(division);
+  const four = d.groups.length > 3;
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -32,7 +37,7 @@ export function ServicesOverview() {
           <div className="max-w-sm">
             <p className="text-base leading-relaxed text-wax/70 sm:text-lg">{about.services.intro}</p>
             <Link
-              href="/services"
+              href={d.servicesPath}
               className="mt-5 inline-block text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px] transition-colors hover:text-honey"
             >
               View all services
@@ -40,26 +45,18 @@ export function ServicesOverview() {
           </div>
         </div>
 
-        <div data-groups className="mt-12 grid gap-4 md:mt-20 lg:grid-cols-3 lg:gap-5">
-          {serviceGroups.map((g, gi) => (
+        <div data-groups className={`mt-12 grid gap-4 md:mt-20 lg:gap-5 ${four ? "md:grid-cols-2" : "lg:grid-cols-3"}`}>
+          {d.groups.map((g, gi) => (
             <div key={g.title} data-group className="rounded-[24px] border border-wax/10 bg-comb/55 p-3 backdrop-blur-md md:rounded-[28px]">
               <h3 className="flex items-center gap-3 px-4 pb-2 pt-4 text-lg font-semibold text-honey">
-                <span aria-hidden className="flex h-5 items-end gap-[3px]">
-                  {[0.55, 1, 0.55].map((h, i) => (
-                    <span
-                      key={i}
-                      className={`w-[4px] rounded-full ${i === gi ? "bg-honey" : "bg-honey/35"}`}
-                      style={{ height: `${h * 100}%` }}
-                    />
-                  ))}
-                </span>
+                <GroupMark index={gi} total={d.groups.length} className="h-5" barClassName="w-[4px]" />
                 {g.title}
               </h3>
               <ul>
                 {g.items.map((s) => (
                   <li key={s.slug}>
                     <Link
-                      href={servicePath(s.slug)}
+                      href={d.servicePath(s.slug)}
                       className="group flex items-center justify-between gap-4 rounded-[18px] px-4 py-4 transition-colors hover:bg-wax/[0.06]"
                     >
                       <span>

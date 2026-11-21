@@ -1,8 +1,12 @@
-import Link from "next/link";
 import { MagneticLink } from "../motion/Magnetic";
-import { contactHref, serviceGroups, servicesPage } from "@/lib/site";
+import { Breadcrumb } from "../shared/Breadcrumb";
+import { GroupMark } from "../shared/GroupMark";
+import { getDivision, type DivisionId } from "@/lib/divisions";
+import { getServicesCopy } from "@/lib/pages";
 
-export function ServicesHero() {
+export function ServicesHero({ division }: { division: DivisionId }) {
+  const d = getDivision(division);
+  const servicesPage = getServicesCopy(division);
   return (
     <section aria-labelledby="services-hero-title" className="relative flex min-h-[max(100svh,640px)] items-end overflow-hidden">
       <div
@@ -15,19 +19,7 @@ export function ServicesHero() {
       />
 
       <div className="relative mx-auto w-full max-w-7xl px-5 pb-16 pt-28 sm:px-8 md:pb-24">
-        <nav aria-label="Breadcrumb" className="fade-rise mb-6 text-sm text-wax/60" style={{ animationDelay: "var(--intro)" }}>
-          <ol className="flex items-center gap-2">
-            <li>
-              <Link href="/" className="transition-colors hover:text-honey">
-                Home
-              </Link>
-            </li>
-            <li aria-hidden className="h-3 w-[2px] rounded-full bg-honey/60" />
-            <li aria-current="page" className="text-wax">
-              Services
-            </li>
-          </ol>
-        </nav>
+        <Breadcrumb division={division} trail={[{ label: "Services" }]} />
 
         <div className="max-w-[44rem]">
           <h1 id="services-hero-title" className="display text-[clamp(3.25rem,10vw,8.5rem)] text-wax">
@@ -54,31 +46,23 @@ export function ServicesHero() {
         {/* Jump to a group */}
         <div className="fade-rise mt-9 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between" style={{ animationDelay: "calc(var(--intro) + 750ms)" }}>
           <ul className="flex flex-wrap gap-2.5" aria-label="Service groups">
-            {serviceGroups.map((g, gi) => (
+            {d.groups.map((g, gi) => (
               <li key={g.id}>
                 <a
                   href={`#${g.id}`}
                   className="group flex items-center gap-3 rounded-full border border-wax/15 bg-ink/50 py-2.5 pl-3.5 pr-5 text-[15px] text-wax backdrop-blur-md transition-colors hover:border-honey/60 hover:text-honey"
                 >
-                  <span aria-hidden className="flex h-4 items-end gap-[3px]">
-                    {[0.55, 1, 0.55].map((h, i) => (
-                      <span
-                        key={i}
-                        className={`w-[3px] rounded-full ${i === gi ? "bg-honey" : "bg-honey/35"}`}
-                        style={{ height: `${h * 100}%` }}
-                      />
-                    ))}
-                  </span>
+                  <GroupMark index={gi} total={d.groups.length} />
                   {g.title}
                 </a>
               </li>
             ))}
           </ul>
           <MagneticLink
-            href={contactHref()}
+            href={d.contactHref()}
             className="inline-block w-fit rounded-full bg-honey px-7 py-4 text-base font-semibold text-ink transition-colors hover:bg-wax sm:px-8"
           >
-            Start a project
+            {d.cta}
           </MagneticLink>
         </div>
       </div>

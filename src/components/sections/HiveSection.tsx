@@ -1,14 +1,24 @@
 "use client";
 
 import { useRef } from "react";
-import { agents } from "@/lib/site";
+import { agents as marketingAgents } from "@/lib/site";
 import { gsap, useGsap } from "@/lib/motion";
 import { TiltCard } from "../motion/TiltCard";
 
-const statement =
-  "Behind every Aura Hive client is a hive of six AI agents. They test ads, create content and follow up leads around the clock, while our strategists decide what goes live.";
+type Props = {
+  id?: string;
+  title?: string;
+  statement?: string;
+  items?: readonly { name: string; body: string; bars: readonly number[] }[];
+};
 
-export function HiveSection() {
+/** A statement whose words light up as it scrolls, then six cards with live-looking bar charts. */
+export function HiveSection({
+  id = "hive",
+  title = "Meet the hive",
+  statement = "Behind every Aura Hive client is a hive of six AI agents. They test ads, create content and follow up leads around the clock, while our strategists decide what goes live.",
+  items: agents = marketingAgents,
+}: Props) {
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
@@ -36,16 +46,16 @@ export function HiveSection() {
 
   return (
     <section
-      id="hive"
+      id={id}
       ref={root}
       data-stage="1"
-      aria-labelledby="hive-title"
+      aria-labelledby={`${id}-title`}
       className="relative scroll-mt-0 py-24 md:py-36"
     >
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <div className="max-w-3xl">
-          <h2 id="hive-title" className="display text-[clamp(2.75rem,7vw,6.5rem)] text-honey">
-            Meet the hive
+          <h2 id={`${id}-title`} className="display text-[clamp(2.75rem,7vw,6.5rem)] text-honey">
+            {title}
           </h2>
           <p data-statement className="mt-7 text-[clamp(1.4rem,3.2vw,2.6rem)] font-medium leading-[1.25] tracking-tight text-wax">
             {statement.split(" ").map((w, i) => (

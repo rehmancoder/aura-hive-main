@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import { contactHref, faqs as homeFaqs } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
 
 type Props = {
+  division: DivisionId;
+  /** Defaults to the side's home page questions. */
   items?: readonly { q: string; a: string }[];
   title?: string;
   intro?: string;
@@ -19,12 +21,15 @@ type Props = {
  * Every answer stays in the HTML (collapsed with CSS), so Google can read all of them.
  */
 export function Faq({
-  items: faqs = homeFaqs,
+  division,
+  items,
   title = "Questions we often hear",
   intro = "Something else on your mind? Send us your question and we'll get back to you.",
   stage,
   contactLink = true,
 }: Props) {
+  const d = getDivision(division);
+  const faqs = items ?? d.faqs;
   const [open, setOpen] = useState<number | null>(0);
   const base = useId();
 
@@ -40,7 +45,7 @@ export function Faq({
           </p>
           {contactLink ? (
             <Link
-              href={contactHref()}
+              href={d.contactHref()}
               className="mt-5 inline-block text-base font-semibold text-wax underline decoration-honey/60 underline-offset-[6px] transition-colors hover:text-honey"
             >
               Ask us a question

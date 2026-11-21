@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  // The marketing pages used to live at the top level. Send old links and search results to their new address.
+  async redirects() {
+    return [
+      { source: "/about", destination: "/marketing/about", permanent: true },
+      { source: "/services", destination: "/marketing/services", permanent: true },
+      { source: "/services/:slug", destination: "/marketing/services/:slug", permanent: true },
+      { source: "/contact", destination: "/marketing/contact", permanent: true },
+    ];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

@@ -1,38 +1,28 @@
-import Link from "next/link";
 import { ContactForm } from "./ContactForm";
 import { CopyEmail } from "./CopyEmail";
-import { contactPage, site } from "@/lib/site";
+import { Breadcrumb } from "../shared/Breadcrumb";
+import { site } from "@/lib/site";
+import { getDivision, type DivisionId } from "@/lib/divisions";
 
 /** Contact page opening: who to reach and how on the left, the enquiry form on the right. */
-export function ContactHero() {
+export function ContactHero({ division }: { division: DivisionId }) {
+  const { contact } = getDivision(division);
   return (
     <section aria-labelledby="contact-title" className="relative overflow-hidden pb-20 pt-28 md:pb-28 md:pt-36">
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 sm:px-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
         <div className="lg:sticky lg:top-28 lg:self-start">
-          <nav aria-label="Breadcrumb" className="fade-rise mb-6 text-sm text-wax/60" style={{ animationDelay: "var(--intro)" }}>
-            <ol className="flex items-center gap-2">
-              <li>
-                <Link href="/" className="transition-colors hover:text-honey">
-                  Home
-                </Link>
-              </li>
-              <li aria-hidden className="h-3 w-[2px] rounded-full bg-honey/60" />
-              <li aria-current="page" className="text-wax">
-                Contact us
-              </li>
-            </ol>
-          </nav>
+          <Breadcrumb division={division} trail={[{ label: "Contact us" }]} />
 
           <h1 id="contact-title" className="display text-[clamp(3.25rem,9vw,7.5rem)] text-wax">
-            {contactPage.hero.headline.map((w, i) => (
+            {contact.headline.map((w, i) => (
               <span key={i} className="inline-block overflow-hidden pb-[0.08em] align-top">
                 <span
-                  className={`word-rise inline-block ${w === "grow" ? "text-honey" : ""}`}
+                  className={`word-rise inline-block ${w === contact.highlight ? "text-honey" : ""}`}
                   style={{ animationDelay: `calc(var(--intro) + ${80 + i * 70}ms)` }}
                 >
                   {w}
                 </span>
-                {i < contactPage.hero.headline.length - 1 ? " " : null}
+                {i < contact.headline.length - 1 ? " " : null}
               </span>
             ))}
           </h1>
@@ -40,7 +30,7 @@ export function ContactHero() {
             className="fade-rise mt-6 max-w-md text-base leading-relaxed text-wax/80 sm:text-lg"
             style={{ animationDelay: "calc(var(--intro) + 500ms)" }}
           >
-            {contactPage.hero.body}
+            {contact.body}
           </p>
 
           <div className="fade-rise mt-10 space-y-8 border-t border-wax/10 pt-8" style={{ animationDelay: "calc(var(--intro) + 650ms)" }}>
@@ -96,13 +86,13 @@ export function ContactHero() {
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-honey/60" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-honey" />
               </span>
-              100% online: we work with you wherever you are
+              {contact.badge}
             </p>
           </div>
         </div>
 
         <div id="contact-form" className="fade-rise scroll-mt-24" style={{ animationDelay: "calc(var(--intro) + 300ms)" }}>
-          <ContactForm />
+          <ContactForm division={division} />
         </div>
       </div>
     </section>

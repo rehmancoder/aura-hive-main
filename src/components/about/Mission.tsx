@@ -1,11 +1,13 @@
 "use client";
 
 import { useRef } from "react";
-import { about } from "@/lib/site";
+import type { DivisionId } from "@/lib/divisions";
+import { getAbout } from "@/lib/pages";
 import { gsap, useGsap } from "@/lib/motion";
 
 /** The mission, revealed line by line as it scrolls up the screen. */
-export function Mission() {
+export function Mission({ division }: { division: DivisionId }) {
+  const about = getAbout(division);
   const root = useRef<HTMLElement>(null);
 
   useGsap(root, (el) => {
